@@ -1,5 +1,17 @@
 ...
 
+purposeMsgMap : (PU.Model -> (SubModel, Effects action)) -> SubModel -> (SubModel, Effects action)
+purposeMsgMap finishPurposeUpdate y =
+    case y of
+        PurposeModel p -> finishPurposeUpdate p
+        mm -> (mm, Effects.none)
+
+createMsgMap : (CW.CreateWorkout -> (SubModel, Effects action)) -> SubModel -> (SubModel, Effects action)
+createMsgMap finishCreateWorkoutUpdate y =
+    case y of
+        CreateWorkoutModel cw -> finishCreateWorkoutUpdate cw
+        mm -> (mm, Effects.none)
+
 purposeUpdate : (PU.Model -> (PU.Model, Effects PU.Action)) -> Model -> (Model, Effects Action)
 purposeUpdate u m =
     let finishPurposeUpdate p =
@@ -7,12 +19,7 @@ purposeUpdate u m =
         let newEffects = Effects.map Purpose e in
         (PurposeModel pm, newEffects)
     in
-    let updatePurpose y =
-        case y of
-            PurposeModel p -> finishPurposeUpdate p
-            mm -> (mm, Effects.none)
-    in
-    let displaysWithEffects = Array.toList (Array.map updatePurpose m.display)
+    let displaysWithEffects = Array.toList (Array.map (purposeMsgMap finishPurposeUpdate) m.display)
     in
     ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
 
@@ -23,12 +30,7 @@ createUpdate u m =
         let newEffects = Effects.map CreateWorkout e in
         (CreateWorkoutModel cw, newEffects)
     in
-    let updateCreateWorkout y =
-        case y of
-            CreateWorkoutModel cw -> finishCreateWorkoutUpdate cw
-            mm -> (mm, Effects.none)
-    in
-    let displaysWithEffects = Array.toList (Array.map updateCreateWorkout m.display)
+    let displaysWithEffects = Array.toList (Array.map (createMsgMap finishCreateWorkoutUpdate) m.display)
     in
     ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
 
