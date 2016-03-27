@@ -1,3 +1,27 @@
+
+    @@ -183,10 +183,10 @@ createUpdate u m =
+         in
+         ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
+
+    -purposeMapM : PU.Action -> EffModel Model Action -> EffModel Model Action
+    -purposeMapM pu effmodel =
+    +purposeMapM : (Model -> (Model, Effects Action)) -> PU.Action -> EffModel Model Action -> EffModel Model Action
+    +purposeMapM updater pu effmodel =
+         let y = EF.get effmodel in
+    -    let (m, e) = (purposeUpdate (PU.update pu) y) in
+    +    let (m, e) = updater y in
+         effmodel
+             |> EF.map (\_ -> m)
+             |> eff e
+    @@ -204,7 +204,7 @@ handleComponentMsg action effmodel =
+         case action of
+             Purpose pu ->
+                 effmodel
+    -                |> purposeMapM pu
+    +                |> purposeMapM (purposeUpdate (PU.update pu)) pu
+             CreateWorkout cw ->
+                 effmodel
+                     |> createMapM cw
 ...
 
 purposeUpdate : (PU.Model -> (PU.Model, Effects PU.Action)) -> Model -> (Model, Effects Action)
@@ -32,10 +56,10 @@ createUpdate u m =
     in
     ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
 
-purposeMapM : PU.Action -> EffModel Model Action -> EffModel Model Action
-purposeMapM pu effmodel =
+purposeMapM : (Model -> (Model, Effects Action)) -> PU.Action -> EffModel Model Action -> EffModel Model Action
+purposeMapM updater pu effmodel =
     let y = EF.get effmodel in
-    let (m, e) = (purposeUpdate (PU.update pu) y) in
+    let (m, e) = updater y in
     effmodel
         |> EF.map (\_ -> m)
         |> eff e
@@ -53,7 +77,7 @@ handleComponentMsg action effmodel =
     case action of
         Purpose pu ->
             effmodel
-                |> purposeMapM pu
+                |> purposeMapM (purposeUpdate (PU.update pu)) pu
         CreateWorkout cw ->
             effmodel
                 |> createMapM cw
