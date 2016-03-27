@@ -32,8 +32,8 @@ createUpdate u m =
     in
     ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
 
-purposeMapM : (Model -> (Model, Effects Action)) -> PU.Action -> EffModel Model Action -> EffModel Model Action
-purposeMapM updater pu effmodel =
+componentMapM : (Model -> (Model, Effects Action)) -> action -> EffModel Model Action -> EffModel Model Action
+componentMapM updater pu effmodel =
     let y = EF.get effmodel in
     let (m, e) = updater y in
     effmodel
@@ -53,7 +53,7 @@ handleComponentMsg action effmodel =
     case action of
         Purpose pu ->
             effmodel
-                |> purposeMapM (purposeUpdate (PU.update pu)) pu
+                |> componentMapM (purposeUpdate (PU.update pu)) pu
         CreateWorkout cw ->
             effmodel
                 |> createMapM cw
