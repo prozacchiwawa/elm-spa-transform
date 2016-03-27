@@ -1,36 +1,29 @@
 ...
 
-purposeMsgMap : (PU.Model -> (SubModel, Effects action)) -> SubModel -> (SubModel, Effects action)
-purposeMsgMap finishPurposeUpdate y =
-    case y of
-        PurposeModel p -> finishPurposeUpdate p
-        mm -> (mm, Effects.none)
-
-createMsgMap : (CW.CreateWorkout -> (SubModel, Effects action)) -> SubModel -> (SubModel, Effects action)
-createMsgMap finishCreateWorkoutUpdate y =
-    case y of
-        CreateWorkoutModel cw -> finishCreateWorkoutUpdate cw
-        mm -> (mm, Effects.none)
-
-purposeUpdate submodelify submsgify msgMap u m =
+componentUpdate msgMap u m =
     let finishPurposeUpdate p =
         let (pm,e) = u p in
-        let newEffects = Effects.map submsgify e in
-        (submodelify pm, newEffects)
+        (pm, e)
     in
     let displaysWithEffects = Array.toList (Array.map (msgMap finishPurposeUpdate) m.display)
     in
     ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
 
-createUpdate submodelify submsgify msgMap u m =
-    let finishCreateWorkoutUpdate p =
-        let (cw,e) = u p in
-        let newEffects = Effects.map submsgify e in
-        (submodelify cw, newEffects)
+purposeMsgMap finishPurposeUpdate y =
+    let effectMap (m,e) =
+        (PurposeModel m, Effects.map Purpose e)
     in
-    let displaysWithEffects = Array.toList (Array.map (msgMap finishCreateWorkoutUpdate) m.display)
+    case y of
+        PurposeModel p -> finishPurposeUpdate p |> effectMap
+        mm -> (mm, Effects.none)
+
+createMsgMap finishCreateWorkoutUpdate y =
+    let effectMap (m,e) =
+        (CreateWorkoutModel m, Effects.map CreateWorkout e)
     in
-    ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
+    case y of
+        CreateWorkoutModel cw -> finishCreateWorkoutUpdate cw |> effectMap
+        mm -> (mm, Effects.none)
 
 componentMapM : (Model -> (Model, Effects Action)) -> action -> EffModel Model Action -> EffModel Model Action
 componentMapM updater pu effmodel =
@@ -45,10 +38,10 @@ handleComponentMsg action effmodel =
     case action of
         Purpose pu ->
             effmodel
-                |> componentMapM (purposeUpdate PurposeModel Purpose purposeMsgMap (PU.update pu)) pu
+                |> componentMapM (componentUpdate purposeMsgMap (PU.update pu)) pu
         CreateWorkout cw ->
             effmodel
-                |> componentMapM (createUpdate CreateWorkoutModel CreateWorkout createMsgMap (CW.update cw)) cw
+                |> componentMapM (componentUpdate createMsgMap (CW.update cw)) cw
         _ -> effmodel
 
 ...
