@@ -12,25 +12,23 @@ createMsgMap finishCreateWorkoutUpdate y =
         CreateWorkoutModel cw -> finishCreateWorkoutUpdate cw
         mm -> (mm, Effects.none)
 
-purposeUpdate : (PU.Model -> (PU.Model, Effects PU.Action)) -> Model -> (Model, Effects Action)
-purposeUpdate u m =
+purposeUpdate submodelify submsgify msgMap u m =
     let finishPurposeUpdate p =
         let (pm,e) = u p in
-        let newEffects = Effects.map Purpose e in
-        (PurposeModel pm, newEffects)
+        let newEffects = Effects.map submsgify e in
+        (submodelify pm, newEffects)
     in
-    let displaysWithEffects = Array.toList (Array.map (purposeMsgMap finishPurposeUpdate) m.display)
+    let displaysWithEffects = Array.toList (Array.map (msgMap finishPurposeUpdate) m.display)
     in
     ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
 
-createUpdate : (CW.CreateWorkout -> (CW.CreateWorkout, Effects CW.InputAction)) -> Model -> (Model, Effects Action)
-createUpdate u m =
+createUpdate submodelify submsgify msgMap u m =
     let finishCreateWorkoutUpdate p =
         let (cw,e) = u p in
-        let newEffects = Effects.map CreateWorkout e in
-        (CreateWorkoutModel cw, newEffects)
+        let newEffects = Effects.map submsgify e in
+        (submodelify cw, newEffects)
     in
-    let displaysWithEffects = Array.toList (Array.map (createMsgMap finishCreateWorkoutUpdate) m.display)
+    let displaysWithEffects = Array.toList (Array.map (msgMap finishCreateWorkoutUpdate) m.display)
     in
     ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
 
@@ -47,10 +45,10 @@ handleComponentMsg action effmodel =
     case action of
         Purpose pu ->
             effmodel
-                |> componentMapM (purposeUpdate (PU.update pu)) pu
+                |> componentMapM (purposeUpdate PurposeModel Purpose purposeMsgMap (PU.update pu)) pu
         CreateWorkout cw ->
             effmodel
-                |> componentMapM (createUpdate (CW.update cw)) cw
+                |> componentMapM (createUpdate CreateWorkoutModel CreateWorkout createMsgMap (CW.update cw)) cw
         _ -> effmodel
 
 ...
