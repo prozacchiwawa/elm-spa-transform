@@ -1,13 +1,17 @@
 ...
 
 componentUpdate msgMap u m =
-    let finishPurposeUpdate p =
-        let (pm,e) = u p in
-        (pm, e)
-    in
-    let displaysWithEffects = Array.toList (Array.map (msgMap finishPurposeUpdate) m.display)
+    let displaysWithEffects = Array.toList (Array.map (msgMap u) m.display)
     in
     ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
+
+componentMapM : (Model -> (Model, Effects Action)) -> action -> EffModel Model Action -> EffModel Model Action
+componentMapM updater pu effmodel =
+    let y = EF.get effmodel in
+    let (m, e) = updater y in
+    effmodel
+        |> EF.map (\_ -> m)
+        |> eff e
 
 purposeMsgMap finishPurposeUpdate y =
     let effectMap (m,e) =
@@ -24,14 +28,6 @@ createMsgMap finishCreateWorkoutUpdate y =
     case y of
         CreateWorkoutModel cw -> finishCreateWorkoutUpdate cw |> effectMap
         mm -> (mm, Effects.none)
-
-componentMapM : (Model -> (Model, Effects Action)) -> action -> EffModel Model Action -> EffModel Model Action
-componentMapM updater pu effmodel =
-    let y = EF.get effmodel in
-    let (m, e) = updater y in
-    effmodel
-        |> EF.map (\_ -> m)
-        |> eff e
 
 handleComponentMsg : Action -> EffModel Model Action -> EffModel Model Action
 handleComponentMsg action effmodel =
