@@ -40,14 +40,6 @@ componentMapM updater pu effmodel =
         |> EF.map (\_ -> m)
         |> eff e
 
-createMapM : CW.InputAction -> EffModel Model Action -> EffModel Model Action
-createMapM cw effmodel =
-    let y = EF.get effmodel in
-    let (m, e) = (createUpdate (CW.update cw) y) in
-    effmodel
-        |> EF.map (\_ -> m)
-        |> eff e
-
 handleComponentMsg : Action -> EffModel Model Action -> EffModel Model Action
 handleComponentMsg action effmodel =
     case action of
@@ -56,7 +48,7 @@ handleComponentMsg action effmodel =
                 |> componentMapM (purposeUpdate (PU.update pu)) pu
         CreateWorkout cw ->
             effmodel
-                |> createMapM cw
+                |> componentMapM (createUpdate (CW.update cw)) cw
         _ -> effmodel
 
 ...
