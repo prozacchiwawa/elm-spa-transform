@@ -31,13 +31,8 @@ createMsgMap finishCreateWorkoutUpdate action y =
 
 handleComponentMsg : Action -> EffModel Model Action -> EffModel Model Action
 handleComponentMsg action effmodel =
-    case action of
-        Purpose pu ->
-            effmodel
-                |> componentMapM (componentUpdate purposeMsgMap PU.update) action
-        CreateWorkout cw ->
-            effmodel
-                |> componentMapM (componentUpdate createMsgMap CW.update) action
-        _ -> effmodel
+    effmodel
+        |> componentMapM (componentUpdate purposeMsgMap PU.update) action
+        |> componentMapM (componentUpdate createMsgMap CW.update) action
 
 ...
