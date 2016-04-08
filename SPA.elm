@@ -31,8 +31,12 @@ createMsgMap finishCreateWorkoutUpdate action y =
 
 handleComponentMsg : Action -> EffModel Model Action -> EffModel Model Action
 handleComponentMsg action effmodel =
-    effmodel
-        |> componentMapM action (componentUpdate purposeMsgMap PU.update)
-        |> componentMapM action (componentUpdate createMsgMap CW.update)
+    let updateFn update effmodel =
+        componentMapM action update effmodel
+    in
+    List.foldr updateFn effmodel [
+            componentUpdate purposeMsgMap PU.update
+        ,   componentUpdate createMsgMap CW.update
+        ]
 
 ...
