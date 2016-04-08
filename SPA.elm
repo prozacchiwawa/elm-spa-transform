@@ -6,7 +6,7 @@ componentToModel : Container Model SubModel
 componentToModel =
     Container.create (\m -> m.display) (\d m -> { m | display = d })
 
-purposeMsgMap finishPurposeUpdate action y =
+purposeMsgMap action y =
     let effectMap (m,e) =
         (PurposeModel m, Effects.map Purpose e)
     in
@@ -14,7 +14,7 @@ purposeMsgMap finishPurposeUpdate action y =
         (Purpose a, PurposeModel p) -> PU.update a p |> effectMap
         (_,mm) -> (mm, Effects.none)
 
-createMsgMap finishCreateWorkoutUpdate action y =
+createMsgMap action y =
     let effectMap (m,e) =
         (CreateWorkoutModel m, Effects.map CreateWorkout e)
     in
