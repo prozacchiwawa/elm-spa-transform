@@ -13,7 +13,7 @@ create : (model -> Array submodel) -> (Array submodel -> model -> model) -> Cont
 create getDisplays updateDisplays =
     { getDisplays = getDisplays, updateDisplays = updateDisplays }
 
-componentUpdate componentToModel msgMap u action m =
+componentUpdate componentToModel msgMap action m =
     let displaysWithEffects = Array.toList (Array.map (msgMap action) (componentToModel.getDisplays m))
     in
     (componentToModel.updateDisplays (Array.fromList (List.map fst displaysWithEffects)) m, Effects.batch (List.map snd displaysWithEffects))

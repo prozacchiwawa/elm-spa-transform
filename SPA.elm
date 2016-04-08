@@ -28,8 +28,8 @@ handleComponentMsg action effmodel =
         componentMapM action update effmodel
     in
     List.foldr updateFn effmodel [
-            componentUpdate componentToModel purposeMsgMap PU.update
-        ,   componentUpdate componentToModel createMsgMap CW.update
+            componentUpdate componentToModel purposeMsgMap
+        ,   componentUpdate componentToModel createMsgMap
         ]
 
 ...
