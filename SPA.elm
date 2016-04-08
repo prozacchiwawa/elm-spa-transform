@@ -1,4 +1,4 @@
-import Container exposing (Container, componentMapM, componentUpdate)
+import Container exposing (Container, componentMapM, componentUpdate, msgMapper)
 
 ...
 
@@ -6,20 +6,18 @@ componentToModel : Container Model SubModel
 componentToModel =
     Container.create (\m -> m.display) (\d m -> { m | display = d })
 
+purposeMsgMap : Action -> SubModel -> (SubModel, Effects Action)
 purposeMsgMap action y =
-    let effectMap (m,e) =
-        (PurposeModel m, Effects.map Purpose e)
-    in
+    let puUpdate = msgMapper PU.update Purpose PurposeModel in
     case (action,y) of
-        (Purpose a, PurposeModel p) -> PU.update a p |> effectMap
+        (Purpose a, PurposeModel p) -> puUpdate a p
         (_,mm) -> (mm, Effects.none)
 
+createMsgMap : Action -> SubModel -> (SubModel, Effects Action)
 createMsgMap action y =
-    let effectMap (m,e) =
-        (CreateWorkoutModel m, Effects.map CreateWorkout e)
-    in
+    let cwUpdate = msgMapper CW.update CreateWorkout CreateWorkoutModel in
     case (action,y) of
-        (CreateWorkout a, CreateWorkoutModel cw) -> CW.update a cw |> effectMap
+        (CreateWorkout a, CreateWorkoutModel p) -> cwUpdate a p
         (_,mm) -> (mm, Effects.none)
 
 handleComponentMsg : Action -> EffModel Model Action -> EffModel Model Action

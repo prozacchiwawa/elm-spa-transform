@@ -1,8 +1,8 @@
 module Container where
 
 import Array exposing (Array(..))
-import Effects
-import Signals.EffModel as EF exposing (eff)
+import Effects exposing (Effects(..))
+import Signals.EffModel as EF exposing (EffModel, eff)
 
 type alias Container model submodel = {
         getDisplays : model -> Array submodel
@@ -12,6 +12,11 @@ type alias Container model submodel = {
 create : (model -> Array submodel) -> (Array submodel -> model -> model) -> Container model submodel
 create getDisplays updateDisplays =
     { getDisplays = getDisplays, updateDisplays = updateDisplays }
+
+msgMapper : (action -> model -> (model, Effects action)) -> (action -> actionA) -> (model -> modelA) -> action -> model -> (modelA, Effects actionA)
+msgMapper update liftAction liftModel action model =
+    let (m,e) = update action model in
+    (liftModel m, Effects.map liftAction e)
 
 componentUpdate componentToModel msgMap action m =
     let displaysWithEffects = Array.toList (Array.map (msgMap action) (componentToModel.getDisplays m))
