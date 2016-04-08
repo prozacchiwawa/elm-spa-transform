@@ -1,9 +1,11 @@
 ...
 
-componentUpdate msgMap u action m =
-    let displaysWithEffects = Array.toList (Array.map (msgMap u action) m.display)
+componentToModel = { getDisplays = \m -> m.display, updateDisplays = \d m -> { m | display = d } }
+
+componentUpdate componentToModel msgMap u action m =
+    let displaysWithEffects = Array.toList (Array.map (msgMap u action) (componentToModel.getDisplays m))
     in
-    ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
+    (componentToModel.updateDisplays (Array.fromList (List.map fst displaysWithEffects)) m, Effects.batch (List.map snd displaysWithEffects))
 
 componentMapM : Action -> (Action -> Model -> (Model, Effects Action)) -> EffModel Model Action -> EffModel Model Action
 componentMapM action updater effmodel =
@@ -35,8 +37,8 @@ handleComponentMsg action effmodel =
         componentMapM action update effmodel
     in
     List.foldr updateFn effmodel [
-            componentUpdate purposeMsgMap PU.update
-        ,   componentUpdate createMsgMap CW.update
+            componentUpdate componentToModel purposeMsgMap PU.update
+        ,   componentUpdate componentToModel createMsgMap CW.update
         ]
 
 ...
