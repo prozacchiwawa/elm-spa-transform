@@ -5,8 +5,8 @@ componentUpdate msgMap u action m =
     in
     ({ m | display = Array.fromList (List.map fst displaysWithEffects) }, Effects.batch (List.map snd displaysWithEffects))
 
-componentMapM : (Action -> Model -> (Model, Effects Action)) -> Action -> EffModel Model Action -> EffModel Model Action
-componentMapM updater action effmodel =
+componentMapM : Action -> (Action -> Model -> (Model, Effects Action)) -> EffModel Model Action -> EffModel Model Action
+componentMapM action updater effmodel =
     let y = EF.get effmodel in
     let (m, e) = updater action y in
     effmodel
@@ -32,7 +32,7 @@ createMsgMap finishCreateWorkoutUpdate action y =
 handleComponentMsg : Action -> EffModel Model Action -> EffModel Model Action
 handleComponentMsg action effmodel =
     effmodel
-        |> componentMapM (componentUpdate purposeMsgMap PU.update) action
-        |> componentMapM (componentUpdate createMsgMap CW.update) action
+        |> componentMapM action (componentUpdate purposeMsgMap PU.update)
+        |> componentMapM action (componentUpdate createMsgMap CW.update)
 
 ...
